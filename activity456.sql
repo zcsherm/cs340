@@ -44,7 +44,7 @@ VALUES ('NET30', 'Payment due in 30 days.'),
 
 -- Create a table for invoices
 CREATE TABLE Invoices (
-  InvoiceID int AUTO_INCREMENT,
+  InvoiceID int NOT NULL AUTO_INCREMENT,
   CustomerID int,
   InvoiceDate datetime,
   TermsCodeID varchar(50),
