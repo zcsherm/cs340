@@ -18,9 +18,10 @@ DESCRIBE Customers;
 
 
 INSERT INTO Customers ('CustomerName', 'AddressLine1', 'City', 'State', 'PostalCode')
-VALUES ('Bike World', '60025 Bollinger Canyon Road', 'San Ramon', 'California', '94583'),
-('Metro Sports', '482505 Warm Springs Blvd.', 'Fremont', 'California', '94536'),
-('Johnny Sports', '1212 SE 93rd Ave.', 'Gladstone', 'Oregon', '97045');
+VALUES 
+  ('Bike World', '60025 Bollinger Canyon Road', 'San Ramon', 'California', '94583'),
+  ('Metro Sports', '482505 Warm Springs Blvd.', 'Fremont', 'California', '94536'),
+  ('Johnny Sports', '1212 SE 93rd Ave.', 'Gladstone', 'Oregon', '97045');
 
 -- Display all rows from  Customers
 SELECT * FROM Customers;
