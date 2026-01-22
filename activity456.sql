@@ -17,7 +17,12 @@ SHOW TABLES;
 DESCRIBE Customers;
 
 
-INSERT INTO Customers ('CustomerName', 'AddressLine1', 'City', 'State', 'PostalCode')
+INSERT INTO Customers (
+  CustomerName, 
+  AddressLine1, 
+  City, 
+  State, 
+  PostalCode)
 VALUES 
   ('Bike World', '60025 Bollinger Canyon Road', 'San Ramon', 'California', '94583'),
   ('Metro Sports', '482505 Warm Springs Blvd.', 'Fremont', 'California', '94536'),
