@@ -1,6 +1,6 @@
 -- Assignment 4
 
-CREATE or REPLACE TABLE Customers (
+CREATE TABLE Customers (
   CustomerID int NOT NULL AUTO_INCREMENT,
   CustomerName varchar(50),
   AddressLine1 varchar(50),
