@@ -43,7 +43,7 @@ CREATE TABLE TermsCode (
 );
 
 -- Populate Terms Code categories
-INSERT INTO TermsCode ('TermsCodeID', 'Description')
+INSERT INTO TermsCode (TermsCodeID, Description)
 VALUES ('NET30', 'Payment due in 30 days.'),
 ('NET15', 'Payment due in 15 days.'),
 ('210NET30', '2% discount in 10 days Net 30');
@@ -61,7 +61,7 @@ CREATE TABLE Invoices (
 );
 
 -- Populate data for invoices
-INSERT INTO Invoices ('CustomerID', 'InvoiceDate', 'TotalDue', 'TermsCodeID')
+INSERT INTO Invoices (CustomerID, InvoiceDate, TotalDue, TermsCodeID)
 VALUES (2, '2014-02-07', 2388.98, 'NET30'),
 (1, '2014-02-02', 2443.35, '210NET30'),
 (1, '2014-02-09', 8752.32, 'NET30');
