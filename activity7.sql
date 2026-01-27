@@ -246,7 +246,7 @@ CREATE TABLE InvoiceDetails
     REFERENCES Products(ProductNumber)
 );
 
-NSERT INTO InvoiceDetails
+INSERT INTO InvoiceDetails
 (
     InvoiceID,
     ProductNumber,
