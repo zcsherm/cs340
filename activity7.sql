@@ -81,7 +81,7 @@ CREATE TABLE Products
 Page
 3
 of 3
-INSERT INTO `Products` (`ProductNumber`, `ProductName`, `SafetyStockLevel`,
+INSERT INTO Products (ProductNumber, ProductName, SafetyStockLevel,
 `ReorderPoint`, `StandardCost`, `ListPrice`, `DaysToManufacture`) VALUES
 ('BB-7421', 'LL Bottom Bracket', 500, 375, '23.97', '53.99', 1),
 ('BB-9108', 'HL Bottom Bracket', 500, 375, '53.94', '121.49', 1),
