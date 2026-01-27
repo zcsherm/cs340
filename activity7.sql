@@ -78,9 +78,6 @@ CREATE TABLE Products
     PRIMARY KEY (ProductNumber)
 );
 
-Page
-3
-of 3
 INSERT INTO Products (ProductNumber, ProductName, SafetyStockLevel,
 ReorderPoint, StandardCost, ListPrice, DaysToManufacture) VALUES
 ('BB-7421', 'LL Bottom Bracket', 500, 375, '23.97', '53.99', 1),
