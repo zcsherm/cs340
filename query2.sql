@@ -23,7 +23,7 @@ VALUES (
 
 INSERT INTO works_on (eid, pid, due_date)
 VALUES (
-    ((SELECT cid FROM employee WHERE first_name = 'Sara' AND last_name ='Smith'), 'Diamond', 'Should be done by Jan 2019'),
-    ((SELECT cid FROM employee WHERE first_name = 'Bo' AND last_name = "Chan'g"),"Chian'g", "Ongoing Maintenance"),
-    ((SELECT cid FROM employee WHERE first_name = 'Miguel' AND last_name ='Cabrera'), 'The Robinson Project',NULL)
+    ((SELECT id FROM employee WHERE first_name = 'Ananya' AND last_name ='Jaiswal'),(SELECT id FROM project WHERE title = "Chan'g"), '2020-11-19'),
+    ((SELECT id FROM employee WHERE first_name = 'Michael' AND last_name ='Fern'),(SELECT id FROM project WHERE title = "The Robinson Project"), '2020-12-05'),
+    ((SELECT id FROM employee WHERE first_name = 'Abdul' AND last_name ='Rehman'),(SELECT id FROM project WHERE title = "Diamond"), '2021-01-01'),
 );

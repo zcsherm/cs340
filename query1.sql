@@ -11,8 +11,8 @@ CREATE TABLE client (
 
 CREATE TABLE employee (
     id int(11) NOT NULL AUTO_INCREMENT,
-    first_name varchar(255),
-    last_name varchar(255),
+    first_name varchar(255) NOT NULL,
+    last_name varchar(255) NOT NULL,
     start_date date NOT NULL,
     email varchar(255), NOT NULL,
     CONSTRAINT full_name UNIQUE (first_name, last_name),
