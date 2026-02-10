@@ -7,11 +7,11 @@
 -- Order your results by film_id in ascending order.
 
 -- Put query for Q1 here
-SELECT title FROM film WHERE
+SELECT film.film_id FROM film WHERE
 (
 film.length = SELECT MAX(length) FROM film
 )
   OR
 (
 film.replacement_cost = SELECT MIN(film.replacement_cost) FROM film
-);
+) ASC;
