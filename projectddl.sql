@@ -1,18 +1,18 @@
-CREATE TABLE Products  (
+CREATE OR REPLACE TABLE Products  (
     productID int NOT NULL AUTO_INCREMENT,
     name varchar(255) NOT NULL UNIQUE,
     currentPrice decimal(12,2) NOT NULL CHECK (currentPrice > 0),
     PRIMARY KEY (productID)
 );
 
-CREATE TABLE Inventories (
+CREATE OR REPLACE TABLE Inventories (
     inventoryID int NOT NULL AUTO_INCREMENT,
     name varchar(255) NOT NULL,
     atStore boolean NOT NULL,
     PRIMARY KEY (inventoryID)
 );
 -- changed quantity name, added restraints for deletes
-CREATE TABLE ProductInventories (
+CREATE OR REPLACE TABLE ProductInventories (
     productInventoryID int NOT NULL AUTO_INCREMENT,
     productID int NOT NULL,
     inventoryID int NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE ProductInventories (
     ON DELETE RESTRICT
 );
 -- shortened name fields names, changed points name, added check for positive 
-CREATE TABLE Customers (
+CREATE OR REPLACE TABLE Customers (
     customerID int NOT NULL AUTO_INCREMENT,
     fName varchar(255) NOT NULL,
     lName varchar(255) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE Customers (
     PRIMARY KEY (customerID)
 );
 -- Removed orderTotal (calculated value), changed points name
-CREATE TABLE Orders (
+CREATE OR REPLACE TABLE Orders (
     orderID int NOT NULL AUTO_INCREMENT,
     customerID int DEFAULT NULL,
     orderDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -45,7 +45,7 @@ CREATE TABLE Orders (
     PRIMARY KEY (orderID)
 );
 -- removed unitPrice (calculated value), added delete constraints
-CREATE TABLE OrderProducts (
+CREATE OR REPLACE TABLE OrderProducts (
     orderItemID int NOT NULL AUTO_INCREMENT,
     orderID int NOT NULL,
     productID int NOT NULL,
@@ -103,7 +103,7 @@ VALUES
  ((SELECT customerID FROM Customers WHERE email = 'ninjawarrior@super.gove'), 3000)
 ;
 -- Insert Default values for orderproducts
-INSERT INTO orderProducts (orderID, productID, quantity, inventoryID)
+INSERT INTO OrderProducts (orderID, productID, quantity, inventoryID)
 VALUES
     (
     (SELECT Orders.orderID FROM Orders JOIN Customers ON Orders.customerID = Customers.customerID WHERE Customers.email = 'hizzy@me.net'),
@@ -124,3 +124,10 @@ VALUES
     (SELECT inventoryID FROM Inventories WHERE NAME = 'Store Room')  
     )
 ;
+
+SELECT * FROM Products;
+SELECT * FROM Inventories;
+SELECT * FROM ProductInventories;
+SELECT * FROM Orders;
+SELECT * FROM Customers;
+SELECT * FROM OrderProducts;
