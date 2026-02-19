@@ -218,7 +218,7 @@ CREATE PROCEDURE sp_insert_product_inventory(
 )
 COMMENT 'Inserts a new product inventory entry associating a product with an inventory and quantity'
 BEGIN  
-INSERT INTO ProductInventories (productID, inventoryID, quantity) VALUES
+    INSERT INTO ProductInventories (productID, inventoryID, quantity) VALUES
     (_productID, _inventoryID, _quantity);
 END //
 DELIMITER ;
@@ -243,6 +243,9 @@ CREATE PROCEDURE sp_update_customer_info(
 COMMENT 'Updates a customers information'
 BEGIN
      UPDATE Customers SET fName = _fName, lName = _lName, email = _email, phone = _phone WHERE customerID = _customerID;
+END //
+DELIMITER ;
+
 -- Update a Customers points by adding
 UPDATE Customers SET points = (points + @points) WHERE customerID = @customerIDFromProcedure;
 -- Update a customers last purchase date
