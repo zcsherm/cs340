@@ -10,20 +10,14 @@
 
 
 -- Leave the following query code untouched
-DROP VIEW  IF EXISTS v_cert_people;
+DROP TRIGGER IF EXISTS trigger_after_cert_person_inserted;
+DELIMITER //
 
 -- ------- Write your code below this line -----------
-CREATE VIEW v_cert_people AS
-SELECT 
-    -- columns here
-FROM 
-    -- table here
-JOIN 
-    -- table join here
-JOIN 
-    -- table join here
-LEFT JOIN 
-    -- table join here
-ORDER BY 
-    -- order by column here
+CREATE TRIGGER trigger_after_cert_person_inserted
 
+    -- CALL sp_update_cert_count_totals(); in the trigger body
+
+
+-- ------- Do not alter query code below this line -----------
+DELIMITER ;

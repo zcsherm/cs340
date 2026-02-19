@@ -10,20 +10,16 @@
 
 
 -- Leave the following query code untouched
-DROP VIEW  IF EXISTS v_cert_people;
+DROP PROCEDURE IF EXISTS sp_update_cert_count_totals;
+DELIMITER //
 
 -- ------- Write your code below this line -----------
-CREATE VIEW v_cert_people AS
-SELECT 
-    -- columns here
-FROM 
-    -- table here
-JOIN 
-    -- table join here
-JOIN 
-    -- table join here
-LEFT JOIN 
-    -- table join here
-ORDER BY 
-    -- order by column here
+CREATE PROCEDURE sp_update_cert_count_totals()
+BEGIN
+    -- Update the cert_total column with the count of people holding each certificate
 
+END //
+
+
+-- ------- Do not alter query code below this line -----------
+DELIMITER ;

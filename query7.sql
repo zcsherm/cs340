@@ -10,20 +10,16 @@
 
 
 -- Leave the following query code untouched
-DROP VIEW  IF EXISTS v_cert_people;
+DROP PROCEDURE  IF EXISTS sp_modify_cert_table;
+DELIMITER //
 
 -- ------- Write your code below this line -----------
-CREATE VIEW v_cert_people AS
-SELECT 
-    -- columns here
-FROM 
-    -- table here
-JOIN 
-    -- table join here
-JOIN 
-    -- table join here
-LEFT JOIN 
-    -- table join here
-ORDER BY 
-    -- order by column here
+CREATE PROCEDURE sp_modify_cert_table()
+BEGIN
+    -- Add the new column cert_total to bsg_cert table
 
+END //
+
+
+-- ------- Do not alter query code below this line -----------
+DELIMITER ;
