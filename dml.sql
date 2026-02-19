@@ -9,11 +9,28 @@
 
 
 -- GENERIC VIEWS (ALL VALUES)
+DROP VIEW IF EXISTS v_all_products;
+CREATE VIEW v_all_products AS 
 SELECT * FROM Products;
+
+DROP VIEW IF EXISTS v_all_inventories;
+CREATE VIEW v_all_inventories AS
 SELECT * FROM Inventories;
+
+DROP VIEW IF EXISTS v_all_product_inventories;
+CREATE VIEW v_all_product_inventories AS
 SELECT * FROM ProductInventories;
+
+DROP VIEW IF EXISTS v_all_customers;
+CREATE VIEW v_all_customers AS
 SELECT * FROM Customers;
+
+DROP VIEW IF EXISTS v_all_orders;
+CREATE VIEW v_all_orders AS
 SELECT * FROM Orders;
+
+DROP VIEW IF EXISTS v_all_order_products;
+CREATE VIEW v_all_order_products AS
 SELECT * FROM OrderProducts;
 
 -- USER FRIENDLY VIEWS
@@ -79,25 +96,98 @@ ORDER BY OrderProducts.orderID ASC;
 
 
 -- Get CustomerID based on customer name => Better as a function that returns a single value
-SELECT Customers.customerID from Customers WHERE fname = @fname AND lname = @lname;
+DROP FUNCTION IF EXISTS fn_get_customer_id_by_name;
+DELIMITER //
+CREATE FUNCTION fn_get_customer_id_by_name(
+    IN _fName VARCHAR(255),
+    IN _lName VARCHAR(255)
+)
+RETURNS INT
+DETERMINISTIC
+COMMENT 'Returns a customerID based on the customers first and last name. Assumes no duplicate NAMES'
+BEGIN
+    DECLARE _customerID INT;
+    IF EXISTS (SELECT 2 FROM Customers WHERE fname = _fName AND lname = _lName) THEN
+        RETURN NULL; -- Return NULL if there are multiple customers with the same name
+    END IF;
+    SELECT customerID INTO _customerID FROM Customers WHERE fname = _fName AND lname = _lName;
+    RETURN _customerID;
+END //
+DELIMITER ;
+
 -- Get inventoryID based on inventoryID -> Better as Function
-SELECT Inventories.inventoryID from Inventories WHERE name = @inventoryName;
+DROP FUNCTION IF EXISTS fn_get_inventory_id_by_name;
+DELIMITER //
+CREATE FUNCTION fn_get_inventory_id_by_name(
+    IN _inventoryName VARCHAR(255)
+)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE _inventoryID INT;
+    SELECT inventoryID INTO _inventoryID FROM Inventories WHERE name = _inventoryName;
+    RETURN _inventoryID;
+END //
+DELIMITER ;
+
 -- Get all orders for a particular customer by name
+DROP VIEW IF EXISTS v_orders_by_customer_name;
+CREATE VIEW v_orders_by_customer_name AS
 SELECT Orders.orderID FROM Orders INNER JOIN 
 Customers ON Orders.customerID = Customers.customerID
 WHERE (Customers.fname = @fname AND Customers.lname = @lname);
+
 -- Get productID based on product name -> Better as a function
-SELECT Products.productID from Products WHERE name = @productName;
+DROP FUNCTION IF EXISTS fn_get_product_id_by_name;
+DELIMITER //
+CREATE FUNCTION fn_get_product_id_by_name(
+    IN _productName VARCHAR(255)
+)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE _productID INT;
+    SELECT productID INTO _productID FROM Products WHERE name = _productName;
+    RETURN _productID;
+END //
+DELIMITER ;
+
 -- Get all products in a given order
-SELECT Products.name as Product, OrderProducts.quantity FROM OrderProducts 
+DROP VIEW IF EXISTS v_products_by_order;
+CREATE VIEW v_products_by_order AS
+SELECT Products.name as Product, OrderProducts.quantity,(OrderProducts.quantity * Products.price) as Price FROM OrderProducts 
 INNER JOIN Products on Products.productID = OrderProducts.productID
-ORDER BY Product;    
+ORDER BY Product;
+
 -- Get all products in a given order with inventory location
-SELECT Products.name as Product, ProductInventories.quantity FROM Products 
-INNER JOIN ProductInventories on Products.productID = ProductInventories.productID
-INNER JOIN Inventories on ProductInventories.inventoryID = Inventories.inventoryID
-WHERE ProductInventories.inventoryID = @inventoryID;    
+DROP PROCEDURE IF EXISTS sp_get_products_by_order_with_inventory;
+DELIMITER //
+CREATE PROCEDURE sp_get_products_by_order_with_inventory(
+    IN _orderID INT
+)
+COMMENT 'Gets all products in a given order with inventory location'
+BEGIN
+        SELECT Products.name as Product, OrderProducts.quantity, Inventories.name as Inventory FROM OrderProducts 
+        INNER JOIN Products on Products.productID = OrderProducts.productID
+        INNER JOIN Inventories on Inventories.inventoryID = OrderProducts.inventoryID
+        WHERE OrderProducts.orderID = _orderID;
+END // 
+DELIMITER ;
+ 
+
 -- Get all orders in a given day
+DROP PROCEDURE IF EXISTS sp_get_orders_by_date;
+DELIMITER //
+CREATE PROCEDURE sp_get_orders_by_date(
+    IN _orderDate DATE
+)
+COMMENT 'Gets all orders in a given day'
+BEGIN
+    SELECT Orders.orderID, CONCAT(Customers.fName,' ',Customers.lName) AS Name, Orders.pointsUsed FROM Orders INNER JOIN Customers ON Orders.customerID = Customers.customerID
+    WHERE Orders.orderDate = _orderDate;
+END //
+DELIMITER ;
+
 ----------------------------------------------------------------------------
 -- FETCH FUNCTIONS
 ----------------------------------------------------------------------------
@@ -122,6 +212,8 @@ WHERE ProductInventories.inventoryID = @inventoryID;
 -- Get the item cost for an order item by orderItemID
 -- Get the total cost of an order by orderID
 -- Get the total cost of an order by customerID (sum of all orders for a given customer)
+-- Get total quantity of a product ordered by productID (sum of quantity for all order items with a given productID)
+
 ----------------------------------------------------------------------------
 -- INSERT QUERIES
 ----------------------------------------------------------------------------
@@ -218,8 +310,12 @@ CREATE PROCEDURE sp_insert_product_inventory(
 )
 COMMENT 'Inserts a new product inventory entry associating a product with an inventory and quantity'
 BEGIN  
-    INSERT INTO ProductInventories (productID, inventoryID, quantity) VALUES
-    (_productID, _inventoryID, _quantity);
+    IF EXISTS (SELECT 1 FROM ProductInventories WHERE productID = _productID AND inventoryID = _inventoryID) THEN
+        SELECT 'Error: Product inventory entry already exists. Use update procedure to change quantity or inventory location.' AS Result;
+    ELSE
+        INSERT INTO ProductInventories (productID, inventoryID, quantity) VALUES
+        (_productID, _inventoryID, _quantity);
+    END IF;
 END //
 DELIMITER ;
 
@@ -242,62 +338,244 @@ CREATE PROCEDURE sp_update_customer_info(
 )
 COMMENT 'Updates a customers information'
 BEGIN
-     UPDATE Customers SET fName = _fName, lName = _lName, email = _email, phone = _phone WHERE customerID = _customerID;
+    UPDATE Customers SET fName = _fName, lName = _lName, email = _email, phone = _phone WHERE customerID = _customerID;
 END //
 DELIMITER ;
 
 -- Update a Customers points by adding
-UPDATE Customers SET points = (points + @points) WHERE customerID = @customerIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_customer_points;
+DELIMITER //
+CREATE PROCEDURE sp_update_customer_points(
+    IN _customerID INT,
+    IN _points INT
+)
+COMMENT 'Updates a customers points by adding to the existing points'
+BEGIN
+    UPDATE Customers SET points = (points + _points) WHERE customerID = _customerID;
+END //
+DELIMITER ;
+
 -- Update a customers last purchase date
-UPDATE Customers SET lastPurchase = CURRENT_TIMESTAMP WHERE customerID = @customerIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_customer_last_purchase;
+DELIMITER //
+CREATE PROCEDURE sp_update_customer_last_purchase(
+    IN _customerID INT
+)
+COMMENT 'Updates a customers last purchase date to the current timestamp'
+BEGIN
+    UPDATE Customers SET lastPurchase = CURRENT_TIMESTAMP WHERE customerID = _customerID;
+END //
+DELIMITER ;
 
 -- PRODUCT UPDATE QUERIES
 -- Update a product's price
-UPDATE Products SET currentPrice = @currentPrice WHERE productID = @productIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_product_price;
+DELIMITER //
+CREATE PROCEDURE sp_update_product_price(
+    IN _productID INT,
+    IN _currentPrice DECIMAL(12,2)
+)
+COMMENT "Updates a product's price"
+BEGIN
+    UPDATE Products SET currentPrice = _currentPrice WHERE productID = _productID;
+END //
+DELIMITER ;
+
 -- Update a product's name
-UPDATE Products SET name = @name WHERE productID = @productIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_product_name;
+DELIMITER //
+CREATE PROCEDURE sp_update_product_name(
+    IN _productID INT,
+    IN _name VARCHAR(255)
+)
+COMMENT "Updates a product's name"
+BEGIN
+    UPDATE Products SET name = _name WHERE productID = _productID;
+END //
+DELIMITER ;
 
 -- INVENTORY UPDATE QUERIES
 -- Update an inventory's name and atStore status
-UPDATE Inventories SET name = @name, atStore = @atStore WHERE inventoryID = @inventoryIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_inventory;
+DELIMITER //
+CREATE PROCEDURE sp_update_inventory(
+    IN _inventoryID INT,
+    IN _name VARCHAR(255),
+    IN _atStore BOOLEAN
+)
+COMMENT "Updates an inventory's name and atStore status"
+BEGIN
+    UPDATE Inventories SET name = _name, atStore = _atStore WHERE inventoryID = _inventoryID;
+END //
+DELIMITER ;
+
 -- Update a product's quantity in an inventory
-UPDATE ProductInventories SET quantity = @quantity WHERE productID = @productIDFromProcedure AND inventoryID = @inventoryIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_product_inventory_quantity;
+DELIMITER //
+CREATE PROCEDURE sp_update_product_inventory_quantity(
+    IN _productID INT,
+    IN _inventoryID INT,
+    IN _quantity INT
+)
+COMMENT "Updates a product's quantity in an inventory"
+BEGIN
+    UPDATE ProductInventories SET quantity = _quantity WHERE productID = _productID AND inventoryID = _inventoryID;
+END //
+DELIMITER ;
+
 -- Update a product's quantity in an inventory by adding to the existing quantity (eg feeding 3 to increase inventory by 3)
-UPDATE ProductInventories SET quantity = quantity + @quantity WHERE productID = @productIDFromProcedure AND inventoryID = @inventoryIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_add_product_inventory_quantity;
+DELIMITER //
+CREATE PROCEDURE sp_add_product_inventory_quantity(
+    IN _productID INT,
+    IN _inventoryID INT,
+    IN _quantity INT
+)
+COMMENT "Adds to a product's quantity in an inventory"
+BEGIN
+    UPDATE ProductInventories SET quantity = quantity + _quantity WHERE productID = _productID AND inventoryID = _inventoryID;
+END //
+DELIMITER ;
+
 
 -- PRODUCT INVENTORY UPDATE QUERIES
--- Update a product's quantity in an inventory
-UPDATE ProductInventories SET quantity = @quantity WHERE productID = @productIDFromProcedure AND inventoryID = @inventoryIDFromProcedure;
--- Update a product's quantity in an inventory by adding 
-UPDATE ProductInventories SET quantity = quantity + @quantity WHERE productID = @productIDFromProcedure AND inventoryID = @inventoryIDFromProcedure;
 -- Update a product's inventory location (by changing the inventoryID associated with that product)
-UPDATE ProductInventories SET inventoryID = @inventoryID WHERE productID = @productIDFromProcedure AND inventoryID = @inventoryIDFromProcedure;
--- Update a product's inventory location and quantity
-UPDATE ProductInventories SET inventoryID = @inventoryID, quantity = @quantity WHERE productID = @productIDFromProcedure AND inventoryID = @inventoryIDFromProcedure;
--- Update the product associated with a given inventory entry (rare use)
-UPDATE ProductInventories SET productID = @productID WHERE productID = @productIDFromProcedure AND inventoryID = @inventoryIDFromProcedure;
+DROP IF EXISTS sp_update_product_inventory_location;
+DELIMITER //
+CREATE PROCEDURE sp_update_product_inventory_location(
+    IN _productID INT,
+    IN _inventoryID INT,
+    IN _inventoryIDNew INT
+)
+COMMENT "Updates a product's inventory location"
+BEGIN
+    UPDATE ProductInventories SET inventoryID = _inventoryIDNew WHERE productID = _productID AND inventoryID = _inventoryID;
+END //
+DELIMITER ;
 
 -- ORDER UPDATE QUERIES
 -- Update an order's points used
-UPDATE Orders SET pointsUsed = @pointsUsed WHERE orderID = @orderIDFromProcedure;
+DROP IF EXISTS sp_update_order_points_used;
+DELIMITER //
+CREATE PROCEDURE sp_update_order_points_used(
+    IN _orderID INT,
+    IN _pointsUsed INT
+)
+COMMENT "Updates an order's points used"
+BEGIN
+     UPDATE Orders SET pointsUsed = _pointsUsed WHERE orderID = _orderID;
+END //
+DELIMITER ;
+
 -- Update an order's customer
-UPDATE Orders SET customerID = @customerID WHERE orderID = @orderIDFromProcedure;
+DROP IF EXISTS sp_update_order_customer;
+DELIMITER //
+CREATE PROCEDURE sp_update_order_customer(
+    IN _orderID INT,
+    IN _customerID INT
+)
+COMMENT "Updates an order's customer"
+BEGIN
+     UPDATE Orders SET customerID = _customerID WHERE orderID = _orderID;
+END //
+DELIMITER ;
+
 -- Update an order's date
-UPDATE Orders SET orderDate = @orderDate WHERE orderID = @orderIDFromProcedure;
+DROP IF EXISTS sp_update_order_date;
+DELIMITER //
+CREATE PROCEDURE sp_update_order_date(
+    IN _orderID INT,
+    IN _orderDate DATE
+)
+COMMENT "Updates an order's date"
+BEGIN
+     UPDATE Orders SET orderDate = _orderDate WHERE orderID = _orderID;
+END //
+DELIMITER ;
+
 -- Update all of an orders attributes
-UPDATE Orders SET customerID = @customerID, orderDate = @orderDate, pointsUsed = @pointsUsed WHERE orderID = @orderIDFromProcedure;
+DROP IF EXISTS sp_update_order;
+DELIMITER //
+CREATE PROCEDURE sp_update_order(
+    IN _orderID INT,
+    IN _customerID INT,
+    IN _orderDate DATE,
+    IN _pointsUsed INT
+)
+COMMENT "Updates all attributes of an order"
+BEGIN
+    UPDATE Orders SET customerID = _customerID, orderDate = _orderDate, pointsUsed = _pointsUsed WHERE orderID = _orderID;
+END //
+DELIMITER ;
 
 -- ORDER PRODUCT UPDATE QUERIES
 -- Update the quantity of a product in an order
-UPDATE OrderProducts SET quantity = @quantity WHERE orderItemID = @orderItemIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_order_product_quantity;
+DELIMITER //
+CREATE PROCEDURE sp_update_order_product_quantity(
+    IN _orderItemID INT,
+    IN _quantity INT
+)
+COMMENT "Updates the quantity of a product in an order"
+BEGIN
+    UPDATE OrderProducts SET quantity = _quantity WHERE orderItemID = _orderItemID;
+END //
+DELIMITER ;
+
 -- Update the product associated with an order item
-UPDATE OrderProducts SET productID = @productID WHERE orderItemID = @orderItemIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_order_product;
+DELIMITER //
+CREATE PROCEDURE sp_update_order_product(
+    IN _orderItemID INT,
+    IN _productID INT
+)
+COMMENT "Updates the product associated with an order item"
+BEGIN
+    UPDATE OrderProducts SET productID = _productID WHERE orderItemID = _orderItemID;
+END //
+DELIMITER ;
+
 -- Update the inventory associated with an order item
-UPDATE OrderProducts SET inventoryID = @inventoryID WHERE orderItemID = @orderItemIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_order_inventory;
+DELIMITER //
+CREATE PROCEDURE sp_update_order_inventory(
+    IN _orderItemID INT,
+    IN _inventoryID INT
+)
+COMMENT "Updates the inventory associated with an order item"
+BEGIN
+    UPDATE OrderProducts SET inventoryID = _inventoryID WHERE orderItemID = _orderItemID;
+END //
+DELIMITER ;
+
 -- Update the order associated with an order item
-UPDATE OrderProducts SET orderID = @orderID WHERE orderItemID = @orderItemIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_order_product_order;
+DELIMITER //
+CREATE PROCEDURE sp_update_order_product_order(
+    IN _orderItemID INT,
+    IN _orderID INT
+)
+COMMENT "Updates the order associated with an order item"
+BEGIN 
+    UPDATE OrderProducts SET orderID = _orderID WHERE orderItemID = _orderItemID;
+END //
+DELIMITER ;
+
 -- Update all attributes of an order item
-UPDATE OrderProducts SET orderID = @orderID, productID = @productID, quantity = @quantity, inventoryID = @inventoryID WHERE orderItemID = @orderItemIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_order_item;
+DELIMITER //
+CREATE PROCEDURE sp_update_order_item(
+    IN _orderItemID INT,
+    IN _orderID INT,
+    IN _productID INT,
+    IN _quantity INT,
+    IN _inventoryID INT
+)
+COMMENT "Updates all attributes of an order item"
+BEGIN
+    UPDATE OrderProducts SET orderID = _orderID, productID = _productID, quantity = _quantity, inventoryID = _inventoryID WHERE orderItemID = _orderItemID;
+END //
+DELIMITER ;
 
 
 -------------------------------------------------------------------------------
