@@ -231,7 +231,18 @@ DELIMITER ;
 
 -- CUSTOMER UPDATE QUERIES
 -- Update a customer's information
-UPDATE Customers SET fName = @fName, lName = @lName, email = @email, phone = @phone WHERE customerID = @customerIDFromProcedure;
+DROP PROCEDURE IF EXISTS sp_update_customer_info;
+DELIMITER //
+CREATE PROCEDURE sp_update_customer_info(
+    IN _customerID INT,
+    IN _fName VARCHAR(255),
+    IN _lName VARCHAR(255),
+    IN _email VARCHAR(255),
+    IN _phone VARCHAR(15)
+)
+COMMENT 'Updates a customers information'
+BEGIN
+     UPDATE Customers SET fName = _fName, lName = _lName, email = _email, phone = _phone WHERE customerID = _customerID;
 -- Update a Customers points by adding
 UPDATE Customers SET points = (points + @points) WHERE customerID = @customerIDFromProcedure;
 -- Update a customers last purchase date
