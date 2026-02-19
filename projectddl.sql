@@ -131,3 +131,10 @@ SELECT * FROM ProductInventories;
 SELECT * FROM Orders;
 SELECT * FROM Customers;
 SELECT * FROM OrderProducts;
+
+SELECT * FROM Products;
+SELECT * FROM Inventories;
+SELECT * FROM ProductInventories;
+SELECT * FROM Orders;
+SELECT * FROM Customers;
+SELECT * FROM OrderProducts;
