@@ -8,7 +8,6 @@
 -- If AI tools were used:
 -- (Explain the use of tools and include a summary of the prompts submitted to the AI tool)
 
-
 -- Leave the following query code untouched
 DROP PROCEDURE IF EXISTS sp_insert_person;
 DELIMITER //
@@ -34,12 +33,16 @@ BEGIN
     START TRANSACTION;
     
     -- Insert into bsg_people table
-    
+    INSERT INTO bsg_people (fname, lname, age, homeworld_id)
+    VALUES (fname, lname, age, homeworld);
     -- Get the last inserted id
+    SET person_id = LAST_INSERT_ID();
     
     -- Insert into bsg_cert_people table
-    
+    INSERT INTO bsg_cert_people (pid, cid)
+    VALUES (person_id, cert_id);
     COMMIT;
+    RETURN person_id;
 END //
 
 

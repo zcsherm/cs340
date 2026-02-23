@@ -25,13 +25,24 @@ BEGIN
     ELSE
 
         -- Convert the input timeNow to TIME format
-
+            SET formatted_time = STR_TO_DATE(timeNow, '%H%i');
         -- Check for valid time range
-
+        IF formatted_time IS NULL THEN
+            SET greeting ='Error: Time was not in a valid range.';
+            LEAVE sp_query1;
+        END IF;
         -- SET OUTVAR 'greeting' to a string value based on current_hour
             -- e.g. SET greeting = 'Good evening';
-
-
+        SET current_hour = HOUR(formatted_time);
+        IF current_hour >= 6 AND current_hour < 12 THEN
+            SET greeting = 'Good morning';
+        ELSEIF current_hour >= 12 AND current_hour < 17 THEN
+            SET greeting = 'Good afternoon';
+        ELSEIF current_hour >= 17 THEN
+            SET greeting = 'Good evening';
+        ELSE
+            SET greeting = 'Good late night';
+        END IF;
     END IF;
 END //
 -- ------- Do not alter query code below this line -----------

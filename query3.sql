@@ -29,7 +29,10 @@ BEGIN
     DECLARE cert_count INT;
 
     -- SELECT query to get the certificate count
-
+    SELECT COUNT(*) INTO cert_count
+    FROM bsg_cert_people
+    JOIN bsg_cert ON bsg_cert_people.cid = bsg_cert.id
+    WHERE bsg_cert.title = cert_title;
     -- Increment the used attribute
     UPDATE diag_function_cert_use SET used = used + 1;
     RETURN cert_count;
