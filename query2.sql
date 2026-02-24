@@ -8,7 +8,7 @@ SELECT
     bsg_cert.title,
     bsg_people.fname,
     bsg_people.lname,
-    bsg_planets.name
+    bsg_planets.name as homeworld
     -- columns here
 FROM 
     bsg_cert_people
