@@ -18,8 +18,7 @@ BEGIN
             SET formatted_time = STR_TO_DATE(timeNow, '%H%i');
         -- Check for valid time range
         IF formatted_time IS NULL THEN
-            SET greeting ='Error: Time was not in a valid range.';
-            LEAVE sp_query1;
+            SET greeting ='Invalid time format. Please use HHMM.';
         END IF;
         -- SET OUTVAR 'greeting' to a string value based on current_hour
             -- e.g. SET greeting = 'Good evening';

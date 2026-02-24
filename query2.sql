@@ -19,5 +19,5 @@ JOIN
 LEFT JOIN 
     bsg_planets ON bsg_people.homeworld_id = bsg_planets.id
 ORDER BY 
-    bsg_cert.title
+    bsg_cert.title;
 
