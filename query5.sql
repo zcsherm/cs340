@@ -1,13 +1,3 @@
--- Note: Only use single-line comments in this file.
-
--- Citation for the following code:
--- Date: 
--- Copied from /OR/ Adapted from /OR/ Based on 
--- (Explain degree of originality)
--- Source URL: 
--- If AI tools were used:
--- (Explain the use of tools and include a summary of the prompts submitted to the AI tool)
-
 
 -- Leave the following query code untouched
 DROP PROCEDURE IF EXISTS sp_add_person_certification;
@@ -35,13 +25,15 @@ BEGIN
     -- Check if the certification exists
     SELECT COUNT(*) INTO cert_exists FROM bsg_cert WHERE id = cert_id;
     IF cert_exists = 0 THEN
-    
-        -- If the certification does not exist, rollback and return -99
-
+        ROLLBACK;
+        SELECT -99 AS cert_count;
     ELSE
         -- If the certification exists, insert the new certification for the person
+        INSERT INTO bsg_cert_people (pid, cid)
+        VALUES (person_id, cert_id);
 
         -- Commit the transaction
+        COMMIT;
 
         -- Return the count of people with the new certification
         SELECT func_cert_count((SELECT title FROM bsg_cert WHERE id = cert_id)) AS cert_count;

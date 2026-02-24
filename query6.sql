@@ -1,13 +1,3 @@
--- Note: Only use single-line comments in this file.
-
--- Citation for the following code:
--- Date: 
--- Copied from /OR/ Adapted from /OR/ Based on 
--- (Explain degree of originality)
--- Source URL: 
--- If AI tools were used:
--- (Explain the use of tools and include a summary of the prompts submitted to the AI tool)
-
 
 -- Leave the following query code untouched
 DROP PROCEDURE IF EXISTS sp_update_person_homeworld;
@@ -37,15 +27,20 @@ BEGIN
             SET world_id = CAST(myworld AS UNSIGNED);
             
             -- Check if world_id exists as a planet, if so, update bsg_people
-            -- else, return error
+            IF EXISTS (SELECT 1 FROM bsg_planets WHERE id = world_id) THEN
+                UPDATE bsg_people SET homeworld = world_id WHERE id = person_id;
+            ELSE
+                -- If the planet does not exist, rollback and return error
+                ROLLBACK;
+                SELECT 'Update error!' AS result;
+            END IF;
 
         ELSE
             -- myworld is assumed to be a name, therefore proceed:
-
             -- Get the ID value of a planet with the name matching myworld's value
-
+            SELECT id INTO world_id FROM bsg_planets WHERE name = myworld;
             -- Update the person's homeworld in bsg_people
-
+            UPDATE bsg_people SET homeworld = world_id WHERE id = person_id;
         END IF;
     END IF;
     
