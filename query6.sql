@@ -39,6 +39,11 @@ BEGIN
             -- myworld is assumed to be a name, therefore proceed:
             -- Get the ID value of a planet with the name matching myworld's value
             SELECT id INTO world_id FROM bsg_planets WHERE name = myworld;
+            if world_id IS NULL THEN
+                -- If no matching planet is found, rollback and return error
+                ROLLBACK;
+                SELECT 'Update error!' AS result;
+            END IF;
             -- Update the person's homeworld in bsg_people
             UPDATE bsg_people SET homeworld = world_id WHERE id = person_id;
         END IF;

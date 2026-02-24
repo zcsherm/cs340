@@ -17,7 +17,7 @@ JOIN
 JOIN 
     bsg_cert ON bsg_cert_people.cid = bsg_cert.id
 LEFT JOIN 
-    bsg_planets ON bsg_people.homeworld_id = bsg_planets.id
+    bsg_planets ON bsg_people.homeworld = bsg_planets.id
 ORDER BY 
     bsg_cert.title;
 

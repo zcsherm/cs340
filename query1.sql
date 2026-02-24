@@ -30,7 +30,7 @@ BEGIN
         ELSEIF current_hour >= 17 THEN
             SET greeting = 'Good evening';
         ELSE
-            SET greeting = 'Good late night';
+            SET greeting = "My it's late, shouldn't you be in bed?";
         END IF;
     END IF;
 END //

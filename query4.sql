@@ -24,7 +24,7 @@ BEGIN
     START TRANSACTION;
     
     -- Insert into bsg_people table
-    INSERT INTO bsg_people (fname, lname, age, homeworld_id)
+    INSERT INTO bsg_people (fname, lname, age, homeworld)
     VALUES (fname, lname, age, homeworld);
     -- Get the last inserted id
     SET person_id = LAST_INSERT_ID();
