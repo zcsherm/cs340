@@ -5,10 +5,10 @@ DROP VIEW  IF EXISTS v_cert_people;
 -- ------- Write your code below this line -----------
 CREATE VIEW v_cert_people AS
 SELECT 
-    bsg_cert.title AS "Certificate Title",
-    bsg_people.fname AS "First Name",
-    bsg_people.lname AS "Last Name",
-    bsg_planets.name AS "Homeworld"
+    bsg_cert.title,
+    bsg_people.fname,
+    bsg_people.lname,
+    bsg_planets.name
     -- columns here
 FROM 
     bsg_cert_people
